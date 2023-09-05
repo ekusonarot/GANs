@@ -23,7 +23,7 @@ class Generator(nn.Module):
         ])
         self.conv3 = nn.Sequential(
             nn.Conv2d(256, 16, 3, 1, 0),
-            nn.Conv2d(16, 1, 3, 1, 0),
+            nn.Conv2d(16, 3, 3, 1, 0),
             nn.Tanh()
         )
     
@@ -40,7 +40,7 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 256, 5, 1, 5//2),
+            nn.Conv2d(3, 256, 5, 1, 5//2),
             nn.Conv2d(256, 128, 3, 1, 3//2),
             nn.BatchNorm2d(128),
             nn.LeakyReLU()

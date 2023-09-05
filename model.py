@@ -38,10 +38,14 @@ class GAN(nn.Module):
         for _ in range(self.dis_iter):
             self.dis_opt.zero_grad()
             self.gen_opt.zero_grad()
-            real = self.dis(x)
+            real_output = self.dis(x)
+            real_label = torch.ones_like(real_output)
             x_ = self.gen(x.shape[0])
-            fake = self.dis(x_)
-            dis_loss = F.relu(1 - real).mean() + F.relu(1 + fake).mean()
+            fake_output = self.dis(x_)
+            fake_label = torch.zeros_like(fake_output)
+            output = torch.stack([real_output, fake_output], dim=0)
+            label = torch.stack([real_label, fake_label], dim=0)
+            dis_loss = F.binary_cross_entropy_with_logits(output, label)
             if self.gradient_penalty:
                 r = random.uniform(0, 1)
                 x = (x*r+x_*(1-r)).clone().detach().requires_grad_(True)
@@ -56,8 +60,10 @@ class GAN(nn.Module):
         # generator update
         self.dis_opt.zero_grad()
         self.gen_opt.zero_grad()
-        fake = self.dis(self.gen(x.shape[0]))
-        gen_loss = -fake.mean()
+        fake_output = self.dis(self.gen(x.shape[0]))
+        real_label = torch.ones_like(fake_output)
+        gen_loss = F.binary_cross_entropy_with_logits(fake_output, real_label)
         gen_loss.backward()
         self.gen_opt.step()
+        return {"gen_loss": gen_loss, "dis_loss": dis_loss}
         
