@@ -6,18 +6,19 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    gan = GAN(device)
+    gan = GAN()
     parser = argparse.ArgumentParser(prog="Generative Adversarial Network")
     parser.add_argument("model_name", type=str, choices=gan.names())
     parser.add_argument("-i", "--discriminator_iter", type=int, default=5)
     parser.add_argument("-l", "--learning_rate", type=float, default=1e-3)
     parser.add_argument("-e", "--epoch", type=int, default=200)
     parser.add_argument("-b", "--batch", type=int, default=20)
+    parser.add_argument("-g", "--gradient_penalty", action="store_true")
     
     args = parser.parse_args()
-    gan.load(args.model_name, args.learning_rate, args.discriminator_iter)
+    gan.load(args.model_name, args.learning_rate, args.discriminator_iter, args.gradient_penalty)
 
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     gan = gan.to(device)
 
     transform = transforms.Compose([
@@ -40,8 +41,7 @@ if __name__ == "__main__":
             x = x.to(device)
             gan.one_epoch(x)
             if j % 100 == 0:
-                noise = torch.randn(size=(64, 100, 1, 1)).to(device)
-                img = gan(noise)
+                img = gan(64)
                 grid = utils.make_grid(img)
                 writer.add_image("images", grid, j)
         

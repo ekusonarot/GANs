@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
@@ -27,8 +27,9 @@ class Generator(nn.Module):
             nn.Tanh()
         )
     
-    def forward(self, x):
-        x = self.conv1(x)
+    def forward(self, num):
+        noise = torch.randn(size=(num, 100, 1, 1)).to(device)
+        x = self.conv1(noise)
         for conv in self.conv2:
             x = conv(x)
         x = self.conv3(x)
